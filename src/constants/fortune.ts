@@ -2,6 +2,7 @@ import type { ElementDistribution, FireIntensity } from '../types'
 
 // 天干
 export const STEMS = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'] as const
+type StemIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
 // 地支
 export const BRANCHES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'] as const
@@ -10,7 +11,7 @@ export const BRANCHES = ['子','丑','寅','卯','辰','巳','午','未','申','
 export const MONTH_BRANCHES = ['寅','卯','辰','巳','午','未','申','酉','戌','亥','子','丑'] as const
 
 // 天干 → 五行
-export const STEM_ELEMENT: Record<string, keyof ElementDistribution> = {
+export const STEM_ELEMENT: Record<typeof STEMS[number], keyof ElementDistribution> = {
   甲: '木', 乙: '木',
   丙: '火', 丁: '火',
   戊: '土', 己: '土',
@@ -19,7 +20,7 @@ export const STEM_ELEMENT: Record<string, keyof ElementDistribution> = {
 }
 
 // 地支 → 五行（主五行）
-export const BRANCH_ELEMENT: Record<string, keyof ElementDistribution> = {
+export const BRANCH_ELEMENT: Record<typeof BRANCHES[number], keyof ElementDistribution> = {
   子: '水', 丑: '土', 寅: '木', 卯: '木',
   辰: '土', 巳: '火', 午: '火', 未: '土',
   申: '金', 酉: '金', 戌: '土', 亥: '水',
@@ -32,7 +33,7 @@ export const BRANCH_WEIGHT = 0.4
 // 五虎遁年法（年天干索引 → 寅月天干起始索引）
 // 甲(0)/己(5) → 丙(2), 乙(1)/庚(6) → 戊(4), 丙(2)/辛(7) → 庚(6)
 // 丁(3)/壬(8) → 壬(8), 戊(4)/癸(9) → 甲(0)
-export const TIGER_MONTH_START: Record<number, number> = {
+export const TIGER_MONTH_START: Record<StemIndex, number> = {
   0: 2, 5: 2,
   1: 4, 6: 4,
   2: 6, 7: 6,
@@ -43,7 +44,7 @@ export const TIGER_MONTH_START: Record<number, number> = {
 // 五鼠遁日法（日天干索引 → 子時天干起始索引）
 // 甲(0)/己(5) → 甲(0), 乙(1)/庚(6) → 丙(2), 丙(2)/辛(7) → 戊(4)
 // 丁(3)/壬(8) → 庚(6), 戊(4)/癸(9) → 壬(8)
-export const RAT_HOUR_START: Record<number, number> = {
+export const RAT_HOUR_START: Record<StemIndex, number> = {
   0: 0, 5: 0,
   1: 2, 6: 2,
   2: 4, 7: 4,
