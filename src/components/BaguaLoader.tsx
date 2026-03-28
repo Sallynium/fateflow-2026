@@ -37,7 +37,7 @@ export function BaguaLoader() {
             const y2 = cy + r * Math.sin(endAngle)
             return (
               <path
-                key={gua.label}
+                key={i}
                 d={`M${cx},${cy} L${x1},${y1} A${r},${r} 0 0,1 ${x2},${y2} Z`}
                 fill={gua.color}
                 opacity={0.75}
