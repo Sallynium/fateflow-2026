@@ -49,10 +49,18 @@ function validateInputs(
   // 年份範圍
   if (y < 1900) throw new Error('date_too_early')
 
-  // 不允許未來日期
-  const todayEnd = new Date()
-  todayEnd.setHours(23, 59, 59, 999)
-  if (new Date(dob) > todayEnd) throw new Error('future_date')
+  // 不允許未來日期（以本地年月日比較，避免時區問題）
+  const now = new Date()
+  const todayY = now.getFullYear()
+  const todayM = now.getMonth() + 1
+  const todayD = now.getDate()
+  if (
+    y > todayY ||
+    (y === todayY && m > todayM) ||
+    (y === todayY && m === todayM && d > todayD)
+  ) {
+    throw new Error('future_date')
+  }
 
   // 時間格式
   const timeParts = time.split(':')

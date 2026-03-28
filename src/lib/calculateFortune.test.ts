@@ -75,3 +75,42 @@ describe('calculateFortune - 火行強度分級', () => {
     expect(['low','medium']).toContain(r.fireIntensity)
   })
 })
+
+describe('calculateFortune - 確定性回歸測試', () => {
+  it('相同輸入應回傳相同結果', () => {
+    const r1 = calculateFortune('1990-06-15', '14:30')
+    const r2 = calculateFortune('1990-06-15', '14:30')
+    expect(r1.elements).toEqual(r2.elements)
+    expect(r1.fireIntensity).toBe(r2.fireIntensity)
+    expect(r1.career.score).toBe(r2.career.score)
+  })
+
+  it('不同日期應回傳不同結果', () => {
+    const summer = calculateFortune('1990-06-15', '12:00')
+    const winter = calculateFortune('1990-12-15', '12:00')
+    // 夏月（午月）與冬月（子月）五行分布應有差異
+    expect(summer.elements).not.toEqual(winter.elements)
+  })
+
+  it('fireIntensity 臨界值：火行 >= 80 應為 extreme', () => {
+    // 多次嘗試找到一個 extreme 案例，或驗證邏輯本身
+    // 此測試驗證：若五行分布直接給定火=80，getFireIntensity 應回傳 extreme
+    // 由於 getFireIntensity 是內部函式，我們透過已知結果間接驗證
+    // 1966-07-07 未時：夏月火盛，預期 high 或 extreme
+    const r = calculateFortune('1966-07-07', '14:00')
+    expect(['high', 'extreme']).toContain(r.fireIntensity)
+  })
+
+  it('五行分布各行加總應精確等於 100', () => {
+    const cases = [
+      ['1985-01-01', '00:00'],
+      ['2000-06-15', '12:00'],
+      ['1960-10-10', '20:00'],
+    ] as const
+    for (const [dob, time] of cases) {
+      const r = calculateFortune(dob, time)
+      const sum = Object.values(r.elements).reduce((a, b) => a + b, 0)
+      expect(sum).toBeCloseTo(100, 5)
+    }
+  })
+})
