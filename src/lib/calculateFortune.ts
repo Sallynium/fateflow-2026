@@ -1,7 +1,7 @@
 import type { FortuneResult, ElementDistribution, FireIntensity } from '../types'
 import {
   STEMS, BRANCHES, MONTH_BRANCHES,
-  STEM_ELEMENT, BRANCH_ELEMENT,
+  STEM_ELEMENT, STEM_GROUP, BRANCH_ELEMENT,
   STEM_WEIGHT, BRANCH_WEIGHT,
   TIGER_MONTH_START, RAT_HOUR_START,
   FIRE_ADVICE_2026, CAREER_ADVICE, WEALTH_ADVICE, LOVE_ADVICE,
@@ -170,13 +170,15 @@ export function calculateFortune(dob: string, time: string): FortuneResult {
   const loveRaw   = e.火 * 4.0 + e.水 * 3.0 + 2.0
 
   const fireIntensity = getFireIntensity(elements.火)
+  const dayStemGroup  = STEM_GROUP[pillars[2].stem]
 
   return {
     elements,
-    career:        { score: clamp(careerRaw), advice: CAREER_ADVICE[fireIntensity] },
-    wealth:        { score: clamp(wealthRaw), advice: WEALTH_ADVICE[fireIntensity] },
-    love:          { score: clamp(loveRaw),   advice: LOVE_ADVICE[fireIntensity] },
+    career:        { score: clamp(careerRaw), advice: CAREER_ADVICE[dayStemGroup][fireIntensity] },
+    wealth:        { score: clamp(wealthRaw), advice: WEALTH_ADVICE[dayStemGroup][fireIntensity] },
+    love:          { score: clamp(loveRaw),   advice: LOVE_ADVICE[dayStemGroup][fireIntensity] },
     fireIntensity,
-    fireAdvice2026: FIRE_ADVICE_2026[fireIntensity],
+    fireAdvice2026: FIRE_ADVICE_2026[dayStemGroup][fireIntensity],
+    dayStemGroup,
   }
 }

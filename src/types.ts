@@ -13,6 +13,8 @@ export interface InsightResult {
   advice: string
 }
 
+export type StemGroup = '木' | '火' | '土' | '金' | '水'
+
 export interface FortuneResult {
   elements: ElementDistribution
   career: InsightResult
@@ -20,4 +22,5 @@ export interface FortuneResult {
   love: InsightResult
   fireIntensity: FireIntensity
   fireAdvice2026: string
+  dayStemGroup: StemGroup
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 
 interface Props {
   onSubmit: (dob: string, time: string, gender: 'male' | 'female' | 'unspecified') => void
@@ -7,25 +7,53 @@ interface Props {
 type CalendarMode = 'gregorian' | 'lunar'
 type Gender = 'male' | 'female' | 'unspecified'
 
+const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
+const HOURS  = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0') + ':00')
+
+function getDaysInMonth(year: number, month: number): number {
+  return new Date(year, month, 0).getDate()
+}
+
 export function HeroInput({ onSubmit }: Props) {
   const [calendarMode, setCalendarMode] = useState<CalendarMode>('gregorian')
-  const [dob,  setDob]                  = useState('')
-  const [time, setTime]                 = useState('')
   const [gender, setGender]             = useState<Gender>('unspecified')
-  const [error, setError]               = useState('')
+  const [error,  setError]              = useState('')
 
-  const today = new Date().toISOString().split('T')[0]
+  const currentYear = new Date().getFullYear()
+
+  const [selYear,  setSelYear]  = useState<string>('')
+  const [selMonth, setSelMonth] = useState<string>('')
+  const [selDay,   setSelDay]   = useState<string>('')
+  const [selHour,  setSelHour]  = useState<string>('')
+
+  const years = useMemo(
+    () => Array.from({ length: currentYear - 1899 }, (_, i) => String(currentYear - i)),
+    [currentYear],
+  )
+
+  const daysInMonth = useMemo(() => {
+    if (!selYear || !selMonth) return 31
+    return getDaysInMonth(Number(selYear), Number(selMonth))
+  }, [selYear, selMonth])
+
+  const days = useMemo(
+    () => Array.from({ length: daysInMonth }, (_, i) => String(i + 1)),
+    [daysInMonth],
+  )
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!dob || !time) {
-      setError('請輸入有效的出生日期與時辰')
+    if (!selYear || !selMonth || !selDay || !selHour) {
+      setError('請完整選擇出生年月日與時辰')
       return
     }
+    const dob  = `${selYear}-${String(selMonth).padStart(2,'0')}-${String(selDay).padStart(2,'0')}`
+    const time = selHour
     setError('')
-    const normalizedTime = time.slice(0, 5)
-    onSubmit(dob, normalizedTime, gender)
+    onSubmit(dob, time, gender)
   }
+
+  const selectClass = 'w-full bg-parchment border border-wood/30 rounded-xl px-3 py-3 text-ink text-sm focus:outline-none focus:ring-2 focus:ring-wood/40 appearance-none cursor-pointer'
 
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center px-4 py-16 space-y-10">
@@ -60,37 +88,69 @@ export function HeroInput({ onSubmit }: Props) {
           ))}
         </div>
 
-        {/* 農曆提示 */}
         {calendarMode === 'lunar' && (
           <p className="text-xs text-ink/50 text-center -mt-2 tracking-wide">
-            農曆（推算自動轉換為西曆）
+            農曆日期將自動轉換為西曆推算
           </p>
         )}
 
-        {/* 出生日期 */}
+        {/* 年月日選擇 */}
         <div className="space-y-1.5">
           <label className="text-xs text-ink/60 tracking-widest">出生日期</label>
-          <input
-            type="date"
-            min="1900-01-01"
-            max={today}
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
-            className="w-full bg-parchment border border-wood/30 rounded-xl px-4 py-3 text-ink text-sm focus:outline-none focus:ring-2 focus:ring-wood/40"
-            required
-          />
+          <div className="grid grid-cols-3 gap-2">
+            {/* 年 */}
+            <div className="relative">
+              <select
+                value={selYear}
+                onChange={(e) => { setSelYear(e.target.value); setSelDay('') }}
+                className={selectClass}
+              >
+                <option value="">年</option>
+                {years.map((y) => <option key={y} value={y}>{y}</option>)}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink/40 text-xs">▾</span>
+            </div>
+            {/* 月 */}
+            <div className="relative">
+              <select
+                value={selMonth}
+                onChange={(e) => { setSelMonth(e.target.value); setSelDay('') }}
+                className={selectClass}
+              >
+                <option value="">月</option>
+                {MONTHS.map((m, i) => <option key={i+1} value={String(i+1)}>{m}</option>)}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink/40 text-xs">▾</span>
+            </div>
+            {/* 日 */}
+            <div className="relative">
+              <select
+                value={selDay}
+                onChange={(e) => setSelDay(e.target.value)}
+                className={selectClass}
+              >
+                <option value="">日</option>
+                {days.map((d) => <option key={d} value={d}>{d}日</option>)}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink/40 text-xs">▾</span>
+            </div>
+          </div>
         </div>
 
-        {/* 出生時辰 */}
+        {/* 時辰選擇 */}
         <div className="space-y-1.5">
           <label className="text-xs text-ink/60 tracking-widest">出生時辰</label>
-          <input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="w-full bg-parchment border border-wood/30 rounded-xl px-4 py-3 text-ink text-sm focus:outline-none focus:ring-2 focus:ring-wood/40"
-            required
-          />
+          <div className="relative">
+            <select
+              value={selHour}
+              onChange={(e) => setSelHour(e.target.value)}
+              className={selectClass}
+            >
+              <option value="">選擇時辰</option>
+              {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
+            </select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink/40 text-xs">▾</span>
+          </div>
         </div>
 
         {/* 性別（選填） */}
